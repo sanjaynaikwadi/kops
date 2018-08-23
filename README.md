@@ -1,11 +1,11 @@
 # Setup K8 cluster using EC2 Instance using KOPS (gossip Cluster - Will not be using Route53)
 
---- Assuming you have following binaries installed in your machine
+Assuming you have following binaries installed in your machine
 - awscli (pip install awscli)
 - kubectl (https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - kops (https://github.com/kubernetes/kops)
 
---- Create a IAM user and grant Administrator Privilieges, make sure you create programatic access also
+Create a IAM user and grant Administrator Privilieges, make sure you create programatic access also
 - Download the creds file this will be used later
 
 Run aws configure and insert Access & Secret Keys
@@ -41,3 +41,42 @@ Set SSH Access for login to all nodes, you can generate one using : ssh-keygen -
 ```
 SSH_Public_Key=<path to pub key file>
 ```
+Create a Cluster with kops, using private topology once cluster is created will create bastion for accessing the nodes
+```
+kops create cluster \
+--zones=$Node_Zones \
+--name=${KOPS_CLUSTER_NAME} \
+--node-count=$Node_Count \
+--node-size=$Node_Size \
+--node-volume-size=$Node_Volume \
+--master-size=$Master_Instance_Type \
+--master-count=$Master_Count \
+--master-volume-size=$Master_Volume_Size \
+--master-zones=$Master_Zones \
+--ssh-public-key=$SSH_Public_Key \
+--kubernetes-version=$Kubernetes_version \
+--authorization=alwaysAllow \
+--cloud=aws \
+--associate-public-ip=false \
+--topology=private \
+--networking=flannel
+```
+Deploy the Cluster
+```
+kops update cluster --name ${KOPS_CLUSTER_NAME} --yes
+```
+Let create an bastion instance group for remote managment
+```
+kops create instancegroup bastions --role Bastion --subnet utility-us-east-1a --name ${KOPS_CLUSTER_NAME}
+```
+
+Lets update the Cluster so it will create all above pools
+```
+kops update cluster --name ${KOPS_CLUSTER_NAME} --yes
+```
+## Take a break for tea/coffee and once your back verify your cluster would be up and running
+```
+kops validate cluster"
+```
+
+##### Once you have created a S3 bucket then rest all stuffs you can put in a file and run as shell script
