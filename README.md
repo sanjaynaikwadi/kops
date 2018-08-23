@@ -80,3 +80,12 @@ kops validate cluster"
 ```
 
 ##### Once you have created a S3 bucket then rest all stuffs you can put in a file and run as shell script
+
+##### One Cluster is created and you get the result of kops validate cluster, then you can login to your bastion host run the following command to find the ELB DNS entry for login
+```
+aws elb describe-load-balancers
+... output 
+"DNSName": "bastion-sn-dev-k8s-loc-8q1c0n-560521935.eu-west-1.elb.amazonaws.com",
+...output 
+```
+
